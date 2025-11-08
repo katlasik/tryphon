@@ -1,0 +1,3 @@
+[workspace]
+members = ["tryphon", "tryphon_macros", "tryphon_examples"]
+resolver = "2"
