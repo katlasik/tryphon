@@ -57,10 +57,10 @@ struct AppConfig {
     database: DbConfig,
 }
 
-fn main() {
+fn example_app() -> Result<(), String> {
     match AppConfig::load() {
         Ok(config) => {
-            println!("Starting application on {}:{}", config.host, config.port);
+            println!("Starting server on {}:{}", config.host, config.port);
             println!(
                 "Connected to the database as {}@{}:{}/{}",
                 config.database.credentials.username,
@@ -76,9 +76,35 @@ fn main() {
             config.log_level.iter().for_each(|level| {
                 println!("Log level set to: {:?}", level);
             });
+            Ok(())
         }
         Err(e) => {
             eprintln!("{}", e.pretty_print(ErrorPrintMode::List));
+            Err(e.to_string())
         }
     }
+}
+
+// Set up required environment variables to run the example
+fn main() {
+    println!("Running example_app...");
+    example_app().unwrap();
+}
+
+#[cfg(test)]
+mod tests {
+  use tryphon::env_vars;
+
+  #[test]
+  #[env_vars(
+    DB_USER="test_user",
+    DB_PASSWORD="test_pass",
+    DB_NAME="test_db",
+    ADMIN_EMAIL="acme@acme.com",
+  )]
+  fn test() {
+    assert!(super::example_app().is_ok());
+  }
+
+
 }

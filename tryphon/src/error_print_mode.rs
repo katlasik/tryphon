@@ -1,4 +1,4 @@
-/// Controls the output format for [`ConfigError::pretty_print`].
+/// Controls the output format for `ConfigError::pretty_print`.
 ///
 /// Different modes are suitable for different contexts - List mode is more compact
 /// and suitable for logs, while Table mode provides better visual structure for

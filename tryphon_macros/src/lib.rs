@@ -8,7 +8,9 @@ use proc_macro2::TokenStream as TokenStream2;
 use proc_macro2::{Ident, Span};
 use quote::quote;
 use syn::spanned::Spanned;
-use syn::{Data, DeriveInput, Error, Expr, ExprLit, Field, Lit, Path, Type, parse_macro_input};
+use syn::{Data, DeriveInput, Error, Expr, ExprLit, Field, Lit, Path, Type, parse_macro_input, ItemFn, Meta, Token};
+use syn::punctuated::Punctuated;
+
 fn find_attrs(field: &Field, compile_errors_stream: &mut TokenStream) -> (Vec<String>, bool) {
     let mut loaders: Vec<String> = Vec::new();
 
@@ -152,12 +154,12 @@ fn build_loading_expr(
             .expect("Expecting at least one loader")
             .clone();
         let mut loading_expr = quote! {
-          std::env::var(#first_env_name).map(|v| (v, #first_env_name.to_string()))
+          tryphon::read_env(#first_env_name).map(|v| (v, #first_env_name.to_string()))
         };
 
         for next_env_name in iterator {
             loading_expr = quote! {
-              #loading_expr.or_else(|_| {  std::env::var(#next_env_name).map(|v| (v, #next_env_name.to_string())) })
+              #loading_expr.or_else(|_| {  tryphon::read_env(#next_env_name).map(|v| (v, #next_env_name.to_string())) })
             };
         }
 
@@ -417,4 +419,60 @@ pub fn derive_config_value_decoder(input: TokenStream) -> TokenStream {
         .to_compile_error()
         .into(),
     }
+}
+
+
+#[proc_macro_attribute]
+pub fn env_vars(attr: TokenStream, item: TokenStream) -> TokenStream {
+  // syn v2: parse args as a punctuated list of Meta
+  let metas =         parse_macro_input!(attr with Punctuated::<Meta, Token![,]>::parse_terminated);
+  let input_fn = parse_macro_input!(item as ItemFn);
+
+  // Prepare setters that also remember previous values
+  let mut setters = Vec::new();
+
+  for meta in metas {
+    if let Meta::NameValue(nv) = meta {
+      if let Some(ident) = nv.path.get_ident() {
+        if let Expr::Lit(ExprLit { lit: Lit::Str(s), .. }) = nv.value {
+          let name_str = ident.to_string();
+          let val_str = s.value();
+          setters.push(quote! {
+                        overrides.set(#name_str, #val_str);
+                    });
+        } else {
+          return Error::new_spanned(
+            nv.value,
+            "env var value must be a string literal, e.g. NAME = \"value\"",
+          )
+            .to_compile_error()
+            .into();
+        }
+      }
+    }
+  }
+
+  let attrs = input_fn.attrs;
+  let vis = input_fn.vis;
+  let sig = input_fn.sig;
+  let block = input_fn.block;
+
+  let expanded = quote! {
+        #(#attrs)*
+        #vis #sig {
+            let mut overrides = tryphon::EnvOverrides::init();
+
+            #(#setters)*
+
+            let __result = std::panic::catch_unwind(|| #block);
+
+            drop(overrides);
+
+            if let Err(e) = __result {
+                std::panic::resume_unwind(e);
+            }
+        }
+    };
+
+  TokenStream::from(expanded)
 }

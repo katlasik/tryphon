@@ -312,6 +312,65 @@
 //!
 //! [`ConfigError`]: crate::ConfigError
 //! [`pretty_print`]: crate::ConfigError::pretty_print
+//!
+//! ## Testing with EnvOverrides
+//!
+//! When testing configuration loading, you typically need to set environment variables. However,
+//! environment variables are global to the process, which makes tests interfere with each other
+//! when running in parallel.
+//!
+//! Tryphon provides the [`EnvOverrides`] type to solve this problem. It uses
+//! thread-local storage to override environment variables per-thread:
+//!
+//! ```rust
+//! use tryphon::{Config, EnvOverrides};
+//!
+//! #[derive(Config)]
+//! struct TestConfig {
+//!     #[env("DATABASE_URL")]
+//!     database_url: String,
+//! }
+//!
+//! #[test]
+//! fn test_config_loading() {
+//!     let mut overrides = EnvOverrides::init()
+//!       .set("DATABASE_URL", "postgres://test-db");
+//!
+//!     let config = TestConfig::load().unwrap();
+//!     assert_eq!(config.database_url, "postgres://test-db");
+//!
+//! }
+//! ```
+//!
+//! You can also use `env_vars` annotation:
+//!
+//! ```rust
+//! use tryphon::{Config, EnvOverrides};
+//!
+//! #[derive(Config, Debug)]
+//! struct TestConfig {
+//!     #[env("FOO")]
+//!     foo: String,
+//!
+//!     #[env("BAZ")]
+//!     baz: String,
+//! }
+//!
+//! #[test]
+//! #[env_vars(FOO = "bar", BAZ = "qux")]
+//! fn test_implicit_overrides() {
+//!     let config = TestConfig::load().expect("Failed to load test config");
+//!
+//!     assert_eq!(config.foo, "bar");
+//!     assert_eq!(config.baz, "qux");
+//! }
+//! ```
+//!
+//!
+//! With `EnvOverrides` tests can run concurrently without conflicts. Overrides are removed when the `EnvOverrides` instance is dropped.
+//! Original environment variables are not changed.
+//!
+//! See the [`env_overrides`] module documentation for more details.
 
 #[doc = include_str!("../../README.md")]
 pub mod config;
@@ -319,6 +378,7 @@ pub mod config_error;
 pub mod config_field_error;
 pub mod config_value_decoder;
 pub mod decoders;
+pub mod env_overrides;
 pub mod error_print_mode;
 mod printer;
 pub mod secret;
@@ -329,4 +389,67 @@ pub use config_field_error::*;
 pub use config_value_decoder::*;
 pub use error_print_mode::*;
 pub use secret::*;
+pub use env_overrides::*;
 pub use tryphon_macros::*;
+
+/// Reads an environment variable with support for thread-local test overrides.
+///
+/// This function is the primary way to read environment variables in Tryphon. It automatically
+/// checks for thread-local overrides set via [`EnvOverrides`] before falling back to the actual
+/// environment variables. This enables safe parallel testing without global environment pollution.
+///
+/// # Parameters
+///
+/// * `key` - The name of the environment variable to read
+///
+/// # Returns
+///
+/// Returns `Ok(String)` with the variable's value if found, or `Err(std::env::VarError)` if:
+/// - The variable is not set ([`std::env::VarError::NotPresent`])
+/// - The variable contains invalid Unicode ([`std::env::VarError::NotUnicode`])
+///
+/// # Behavior
+///
+/// 1. If [`EnvOverrides`] is initialized for the current thread, it checks the overrides first
+/// 2. If an override is found, returns that value
+/// 3. If no override is found but overrides are active, returns `NotPresent` (doesn't fall back to real env vars)
+/// 4. If overrides are not initialized, reads from actual environment variables via [`std::env::var`]
+///
+/// # Usage
+///
+///
+/// ```rust
+/// use tryphon::{read_env, EnvOverrides};
+///
+/// # fn main() {
+///
+/// let mut overrides = EnvOverrides::init();
+/// overrides.set("MY_VAR", "test_value");
+///
+/// assert_eq!(read_env("MY_VAR").unwrap(), "test_value");
+///
+/// # }
+/// ```
+///
+/// # Note
+///
+/// When [`EnvOverrides`] is active, this function will NOT fall back to real environment variables
+/// if the key is not found in the overrides. This ensures tests have complete control over which
+/// variables are available.
+///
+/// # See Also
+///
+/// - [`EnvOverrides`] - Thread-local environment variable overrides for testing
+/// - [`Config::load`] - Uses this function internally to read environment variables
+pub fn read_env(key: &str) -> Result<String, std::env::VarError> {
+
+    if EnvOverrides::is_initialized() {
+        if let Some(value) = EnvOverrides::get(key) {
+            Ok(value)
+        } else {
+            Err(std::env::VarError::NotPresent)
+        }
+    } else {
+        std::env::var(key)
+    }
+}

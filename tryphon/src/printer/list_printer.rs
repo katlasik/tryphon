@@ -124,7 +124,7 @@ mod tests {
 
         assert!(result.contains("Found 1 configuration error(s):"));
         assert!(result.contains("Missing value for field 'database_url'"));
-        assert!(result.contains("tried environment vars: DATABASE_URL, DB_URL"));
+        assert!(result.contains("tried env vars: DATABASE_URL, DB_URL"));
     }
 
     #[test]
