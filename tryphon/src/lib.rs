@@ -372,7 +372,6 @@
 //!
 //! See the [`env_overrides`] module documentation for more details.
 
-#[doc = include_str!("../../README.md")]
 pub mod config;
 pub mod config_error;
 pub mod config_field_error;
