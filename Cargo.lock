@@ -104,16 +104,7 @@ name = "tryphon"
 version = "0.1.0"
 dependencies = [
  "rand",
- "tryphon-macros",
-]
-
-[[package]]
-name = "tryphon-macros"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
+ "tryphon_macros",
 ]
 
 [[package]]
@@ -121,6 +112,15 @@ name = "tryphon_examples"
 version = "0.1.0"
 dependencies = [
  "tryphon",
+]
+
+[[package]]
+name = "tryphon_macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

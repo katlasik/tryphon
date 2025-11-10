@@ -1,7 +1,14 @@
 [package]
-name = "tryphon-macros"
-version = "0.1.0"
-edition = "2024"
+name = "tryphon_macros"
+version.workspace = true
+edition.workspace = true
+description = "Procedural macros for the tryphon configuration library"
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation = "https://docs.rs/tryphon_macros"
+keywords = ["macro", "derive", "config", "environment", "env"]
+categories = ["config", "development-tools"]
 
 [lib]
 proc-macro = true

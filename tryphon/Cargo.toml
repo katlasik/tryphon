@@ -1,10 +1,18 @@
 [package]
 name = "tryphon"
-version = "0.1.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
+description = "Type-safe configuration loading from environment variables using derive macros"
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation = "https://docs.rs/tryphon"
+readme = "../README.md"
+keywords = ["config", "environment", "env", "configuration", "derive"]
+categories = ["config", "development-tools", "rust-patterns"]
 
 [dependencies]
-tryphon-macros = { path = "../tryphon_macros" }
+tryphon_macros = { path = "../tryphon_macros" }
 
 [dev-dependencies]
 rand = "0.9.2"
