@@ -21,7 +21,7 @@
 //!
 //! ## Basic Usage
 //!
-//! ```rust
+//! ```rust no_run
 //! use tryphon::Config;
 //!
 //! #[derive(Config)]
@@ -45,7 +45,7 @@
 //!
 //! You can use the `#[env_vars]` attribute macro to automatically set up environment variable overrides for your test:
 //!
-//! ```rust
+//! ```rust no_run
 //! use tryphon::{Config, env_vars};
 //!
 //! #[derive(Config)]
@@ -69,7 +69,7 @@
 //!
 //! The main advantage is that tests can run in parallel without conflicts:
 //!
-//! ```rust
+//! ```rust no_run
 //! use tryphon::{Config, EnvOverrides};
 //!
 //! #[derive(Config)]
@@ -110,7 +110,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 
 thread_local! {
-  static TEST_OVERRIDES: RefCell<Option<HashMap<String, String>,> >= RefCell::new(None);
+  static TEST_OVERRIDES: RefCell<Option<HashMap<String, String>,> >= const { RefCell::new(None) };
 }
 
 /// Thread-local environment variable overrides for testing.

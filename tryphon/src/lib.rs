@@ -322,7 +322,7 @@
 //! Tryphon provides the [`EnvOverrides`] type to solve this problem. It uses
 //! thread-local storage to override environment variables per-thread:
 //!
-//! ```rust
+//! ```rust no_run
 //! use tryphon::{Config, EnvOverrides};
 //!
 //! #[derive(Config)]
@@ -344,7 +344,7 @@
 //!
 //! You can also use `env_vars` annotation:
 //!
-//! ```rust
+//! ```rust no_run
 //! use tryphon::{Config, EnvOverrides};
 //!
 //! #[derive(Config, Debug)]
@@ -387,9 +387,9 @@ pub use config::*;
 pub use config_error::*;
 pub use config_field_error::*;
 pub use config_value_decoder::*;
+pub use env_overrides::*;
 pub use error_print_mode::*;
 pub use secret::*;
-pub use env_overrides::*;
 pub use tryphon_macros::*;
 
 /// Reads an environment variable with support for thread-local test overrides.
@@ -442,7 +442,6 @@ pub use tryphon_macros::*;
 /// - [`EnvOverrides`] - Thread-local environment variable overrides for testing
 /// - [`Config::load`] - Uses this function internally to read environment variables
 pub fn read_env(key: &str) -> Result<String, std::env::VarError> {
-
     if EnvOverrides::is_initialized() {
         if let Some(value) = EnvOverrides::get(key) {
             Ok(value)

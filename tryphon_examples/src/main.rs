@@ -93,18 +93,16 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-  use tryphon::env_vars;
+    use tryphon::env_vars;
 
-  #[test]
-  #[env_vars(
-    DB_USER="test_user",
-    DB_PASSWORD="test_pass",
-    DB_NAME="test_db",
-    ADMIN_EMAIL="acme@acme.com",
-  )]
-  fn test() {
-    assert!(super::example_app().is_ok());
-  }
-
-
+    #[test]
+    #[env_vars(
+        DB_USER = "test_user",
+        DB_PASSWORD = "test_pass",
+        DB_NAME = "test_db",
+        ADMIN_EMAIL = "acme@acme.com"
+    )]
+    fn test() {
+        assert!(super::example_app().is_ok());
+    }
 }

@@ -7,9 +7,12 @@ use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use proc_macro2::{Ident, Span};
 use quote::quote;
-use syn::spanned::Spanned;
-use syn::{Data, DeriveInput, Error, Expr, ExprLit, Field, Lit, Path, Type, parse_macro_input, ItemFn, Meta, Token};
 use syn::punctuated::Punctuated;
+use syn::spanned::Spanned;
+use syn::{
+    Data, DeriveInput, Error, Expr, ExprLit, Field, ItemFn, Lit, Meta, Path, Token, Type,
+    parse_macro_input,
+};
 
 fn find_attrs(field: &Field, compile_errors_stream: &mut TokenStream) -> (Vec<String>, bool) {
     let mut loaders: Vec<String> = Vec::new();
@@ -302,6 +305,11 @@ fn build_loading_for_struct(
     }
 }
 
+/// Derives the `Config` trait for a struct or enum to enable loading configuration from environment variables.
+///
+/// This macro automatically implements the `Config` trait, generating code that reads
+/// environment variables and constructs instances of your type with proper error handling and validation.
+/// ```
 #[proc_macro_derive(Config, attributes(env, default, config))]
 pub fn derive_config(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
@@ -366,6 +374,15 @@ pub fn derive_config(input: TokenStream) -> TokenStream {
     }
 }
 
+/// Derives the `ConfigValueDecoder` trait for simple enums without fields.
+///
+/// This macro automatically implements the `ConfigValueDecoder` trait
+/// for enums, enabling them to be parsed from environment variable string values. It performs
+/// case-insensitive matching of the environment variable value against variant names.
+///
+/// - Can only be used on **enums**
+/// - All variants must be **unit variants** (no fields)
+/// - Matching is **case-insensitive** (variant names are converted to lowercase for comparison)
 #[proc_macro_derive(ConfigValueDecoder)]
 pub fn derive_config_value_decoder(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
@@ -421,43 +438,51 @@ pub fn derive_config_value_decoder(input: TokenStream) -> TokenStream {
     }
 }
 
-
+/// Attribute macro that sets up environment variable overrides for test functions.
+///
+/// This macro automatically initializes `EnvOverrides` at the beginning
+/// of a test function, sets the specified environment variable overrides, and ensures proper cleanup
+/// even if the test panics.
+///
 #[proc_macro_attribute]
 pub fn env_vars(attr: TokenStream, item: TokenStream) -> TokenStream {
-  // syn v2: parse args as a punctuated list of Meta
-  let metas =         parse_macro_input!(attr with Punctuated::<Meta, Token![,]>::parse_terminated);
-  let input_fn = parse_macro_input!(item as ItemFn);
+    // syn v2: parse args as a punctuated list of Meta
+    let metas = parse_macro_input!(attr with Punctuated::<Meta, Token![,]>::parse_terminated);
+    let input_fn = parse_macro_input!(item as ItemFn);
 
-  // Prepare setters that also remember previous values
-  let mut setters = Vec::new();
+    // Prepare setters that also remember previous values
+    let mut setters = Vec::new();
 
-  for meta in metas {
-    if let Meta::NameValue(nv) = meta {
-      if let Some(ident) = nv.path.get_ident() {
-        if let Expr::Lit(ExprLit { lit: Lit::Str(s), .. }) = nv.value {
-          let name_str = ident.to_string();
-          let val_str = s.value();
-          setters.push(quote! {
-                        overrides.set(#name_str, #val_str);
-                    });
-        } else {
-          return Error::new_spanned(
-            nv.value,
-            "env var value must be a string literal, e.g. NAME = \"value\"",
-          )
-            .to_compile_error()
-            .into();
+    for meta in metas {
+        if let Meta::NameValue(nv) = meta
+            && let Some(ident) = nv.path.get_ident()
+        {
+            if let Expr::Lit(ExprLit {
+                lit: Lit::Str(s), ..
+            }) = nv.value
+            {
+                let name_str = ident.to_string();
+                let val_str = s.value();
+                setters.push(quote! {
+                    overrides.set(#name_str, #val_str);
+                });
+            } else {
+                return Error::new_spanned(
+                    nv.value,
+                    "env var value must be a string literal, e.g. NAME = \"value\"",
+                )
+                .to_compile_error()
+                .into();
+            }
         }
-      }
     }
-  }
 
-  let attrs = input_fn.attrs;
-  let vis = input_fn.vis;
-  let sig = input_fn.sig;
-  let block = input_fn.block;
+    let attrs = input_fn.attrs;
+    let vis = input_fn.vis;
+    let sig = input_fn.sig;
+    let block = input_fn.block;
 
-  let expanded = quote! {
+    let expanded = quote! {
         #(#attrs)*
         #vis #sig {
             let mut overrides = tryphon::EnvOverrides::init();
@@ -474,5 +499,5 @@ pub fn env_vars(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
 
-  TokenStream::from(expanded)
+    TokenStream::from(expanded)
 }

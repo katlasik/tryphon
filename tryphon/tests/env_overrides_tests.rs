@@ -61,8 +61,7 @@ fn test_explicit_overrides() {
     assert_eq!(config.foo, "bar");
     assert_eq!(config.baz, "qux");
 
-    test_overrides.set("FOO", "baz")
-                  .set("BAZ", "quux");
+    test_overrides.set("FOO", "baz").set("BAZ", "quux");
 
     let config = TestConfig::load().expect("Failed to load test config");
 
@@ -88,8 +87,9 @@ fn test_concurrency() {
             let foo = random_string();
             let baz = random_string();
 
-            test_overrides.set("FOO", foo.as_str())
-                          .set("BAZ", baz.as_str());
+            test_overrides
+                .set("FOO", foo.as_str())
+                .set("BAZ", baz.as_str());
 
             let config = TestConfig::load().expect("Failed to load test config");
 
@@ -102,12 +102,13 @@ fn test_concurrency() {
     }
 }
 
-#[should_panic(expected = "TestOverrides already initialized. You must not create multiple instances of TestOverrides for single thread.")]
+#[should_panic(
+    expected = "TestOverrides already initialized. You must not create multiple instances of TestOverrides for single thread."
+)]
 #[test]
 fn test_panic_if_there_are_multiple_env_overrides() {
-  let mut overrides = EnvOverrides::init();
-  let _ = EnvOverrides::init();
+    let mut overrides = EnvOverrides::init();
+    let _ = EnvOverrides::init();
 
-  overrides.set("FOO", "bar");
-
+    overrides.set("FOO", "bar");
 }
