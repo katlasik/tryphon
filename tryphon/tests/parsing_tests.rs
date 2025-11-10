@@ -5,7 +5,9 @@ mod common;
 use common::TEST_MUTEX;
 
 fn clear_test_env_vars() {
-    clear_test_env_vars!("DEBUG_MODE", "OPTIONAL_NUMBER");
+    unsafe {
+        clear_test_env_vars!("DEBUG_MODE", "OPTIONAL_NUMBER");
+    }
 }
 
 #[derive(Debug, Config)]
@@ -27,14 +29,14 @@ fn test_boolean_parsing() {
     }
 
     let config = AppConfig::load().expect("Failed to load config");
-    assert_eq!(config.debug, false);
+    assert!(!config.debug);
     assert_eq!(config.optional_number, None);
 
     unsafe {
         env::set_var("DEBUG_MODE", "true");
     }
     let config = AppConfig::load().expect("Failed to load config");
-    assert_eq!(config.debug, true);
+    assert!(config.debug);
     assert_eq!(config.optional_number, None);
 
     unsafe {

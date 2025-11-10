@@ -20,7 +20,9 @@ struct OptionalConfig {
 }
 
 fn clear_test_env_vars() {
-    clear_test_env_vars!("OPTIONAL_STRING", "OPTIONAL_NUMBER", "OPTIONAL_BOOL");
+    unsafe {
+        clear_test_env_vars!("OPTIONAL_STRING", "OPTIONAL_NUMBER", "OPTIONAL_BOOL");
+    }
 }
 
 #[test]

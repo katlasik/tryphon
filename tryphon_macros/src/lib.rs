@@ -309,7 +309,6 @@ fn build_loading_for_struct(
 ///
 /// This macro automatically implements the `Config` trait, generating code that reads
 /// environment variables and constructs instances of your type with proper error handling and validation.
-/// ```
 #[proc_macro_derive(Config, attributes(env, default, config))]
 pub fn derive_config(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);

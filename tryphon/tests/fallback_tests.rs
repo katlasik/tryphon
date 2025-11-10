@@ -13,7 +13,9 @@ struct FallbackConfig {
 }
 
 fn clear_test_env_vars() {
-    clear_test_env_vars!("PRIMARY_VALUE", "SECONDARY_VALUE", "TERTIARY_VALUE");
+    unsafe {
+        clear_test_env_vars!("PRIMARY_VALUE", "SECONDARY_VALUE", "TERTIARY_VALUE");
+    }
 }
 
 #[test]

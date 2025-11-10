@@ -28,18 +28,20 @@ struct AppConfig {
 }
 
 fn clear_test_env_vars() {
-    clear_test_env_vars!(
-        "DB_HOST",
-        "DB_PASSWORD",
-        "DB_PORT",
-        "DB_NAME",
-        "APP_NAME",
-        "APP_PORT",
-        "PORT",
-        "DEBUG_MODE",
-        "LOG_LEVEL",
-        "REQUIRED_FIELD",
-    )
+    unsafe {
+        clear_test_env_vars!(
+            "DB_HOST",
+            "DB_PASSWORD",
+            "DB_PORT",
+            "DB_NAME",
+            "APP_NAME",
+            "APP_PORT",
+            "PORT",
+            "DEBUG_MODE",
+            "LOG_LEVEL",
+            "REQUIRED_FIELD",
+        );
+    }
 }
 
 #[test]

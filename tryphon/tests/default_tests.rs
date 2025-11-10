@@ -44,17 +44,19 @@ struct AppConfig {
 }
 
 fn clear_test_env_vars() {
-    clear_test_env_vars!(
-        "DB_HOST",
-        "DB_PASSWORD",
-        "DB_PORT",
-        "DB_NAME",
-        "APP_NAME",
-        "APP_PORT",
-        "PORT",
-        "DEBUG_MODE",
-        "LOG_LEVEL"
-    );
+    unsafe {
+        clear_test_env_vars!(
+            "DB_HOST",
+            "DB_PASSWORD",
+            "DB_PORT",
+            "DB_NAME",
+            "APP_NAME",
+            "APP_PORT",
+            "PORT",
+            "DEBUG_MODE",
+            "LOG_LEVEL"
+        );
+    }
 }
 
 #[test]
@@ -75,7 +77,7 @@ fn test_successful_loading_with_all_values() {
 
     assert_eq!(config.name, "test-app"); // default value
     assert_eq!(config.port, 3000);
-    assert_eq!(config.debug, true);
+    assert!(config.debug);
     assert_eq!(config.log_level, Some("info".to_string()));
     assert_eq!(config.database.host, "localhost"); // default value
     assert_eq!(*config.database.password, "secret123");
@@ -126,7 +128,7 @@ fn test_default_values_used_when_no_env_set() {
 
     assert_eq!(config.name, "test-app");
     assert_eq!(config.port, 8080);
-    assert_eq!(config.debug, false);
+    assert!(!config.debug);
     assert_eq!(config.database.host, "localhost");
     assert_eq!(config.database.port, 5432);
 

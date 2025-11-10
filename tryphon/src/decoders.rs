@@ -196,8 +196,8 @@ mod tests {
 
     #[test]
     fn test_bool_decoder() {
-        assert_eq!(bool::decode("true".to_string()).unwrap(), true);
-        assert_eq!(bool::decode("false".to_string()).unwrap(), false);
+        assert!(bool::decode("true".to_string()).unwrap());
+        assert!(!bool::decode("false".to_string()).unwrap());
         assert!(bool::decode("invalid".to_string()).is_err());
     }
 
@@ -269,6 +269,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::approx_constant)]
     fn test_float_decoders() {
         assert_eq!(f32::decode("3.14".to_string()).unwrap(), 3.14f32);
         assert_eq!(f64::decode("2.71828".to_string()).unwrap(), 2.71828f64);

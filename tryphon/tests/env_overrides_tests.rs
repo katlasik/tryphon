@@ -16,7 +16,9 @@ struct TestConfig {
 }
 
 fn clear_test_env_vars() {
-    clear_test_env_vars!("FOO", "BAZ");
+    unsafe {
+        clear_test_env_vars!("FOO", "BAZ");
+    }
 }
 
 fn random_string() -> String {

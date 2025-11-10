@@ -20,7 +20,9 @@ struct AppConfig {
 }
 
 fn clear_test_env_vars() {
-    clear_test_env_vars!("LOG_LEVEL");
+    unsafe {
+        clear_test_env_vars!("LOG_LEVEL");
+    }
 }
 
 #[test]
