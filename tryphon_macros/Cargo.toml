@@ -17,3 +17,7 @@ proc-macro = true
 quote = "1.0.41"
 syn = { version = "2.0.108", features = ["fold", "full", "extra-traits"] }
 proc-macro2 = "1.0.101"
+
+[dev-dependencies]
+trybuild = "1.0"
+tryphon = { path = "../tryphon" }

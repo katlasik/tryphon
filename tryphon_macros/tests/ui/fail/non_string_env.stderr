@@ -1,0 +1,11 @@
+error: Expecting a string literal
+ --> tests/ui/fail/non_string_env.rs:5:7
+  |
+5 |     #[env(123)]
+  |       ^^^
+
+error: No env attribute found
+ --> tests/ui/fail/non_string_env.rs:5:5
+  |
+5 |     #[env(123)]
+  |     ^

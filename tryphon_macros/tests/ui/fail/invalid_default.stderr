@@ -1,0 +1,5 @@
+error[E0425]: cannot find function `some_function` in this scope
+ --> tests/ui/fail/invalid_default.rs:6:15
+  |
+6 |     #[default(some_function())]
+  |               ^^^^^^^^^^^^^ not found in this scope

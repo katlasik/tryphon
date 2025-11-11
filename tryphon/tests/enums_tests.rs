@@ -2,26 +2,28 @@ mod common;
 
 use common::TEST_MUTEX;
 use std::env;
+use std::net::Ipv4Addr;
+use tryphon::{Config};
 
-use tryphon::{Config, ConfigValueDecoder};
-
-#[derive(Debug, PartialEq, ConfigValueDecoder)]
-enum LogLevel {
-    Error,
-    Warning,
-    Info,
-    Debug,
-}
-
-#[derive(Debug, Config)]
-struct AppConfig {
-    #[env("LOG_LEVEL")]
-    log_level: LogLevel,
+#[derive(Debug, PartialEq, Config)]
+enum MessagingConfig {
+    Kafka {
+      #[env("KAFKA_BROKER")]
+      broker: Ipv4Addr,
+    },
+    Pulsar {
+      #[env("PULSAR_BROKER")]
+      broker: Ipv4Addr
+    },
+    Mock {
+      #[env("MOCK_BROKER")] #[default(Ipv4Addr::new(1, 1, 1, 1))]
+      broker: Ipv4Addr
+    }
 }
 
 fn clear_test_env_vars() {
     unsafe {
-        clear_test_env_vars!("LOG_LEVEL");
+        clear_test_env_vars!("KAFKA_BROKER", "PULSAR_BROKER");
     }
 }
 
@@ -32,10 +34,21 @@ fn test_enum() {
     clear_test_env_vars();
 
     unsafe {
-        env::set_var("LOG_LEVEL", "debug");
+        env::set_var("KAFKA_BROKER", "127.0.0.1");
     }
 
-    let result = AppConfig::load().expect("failed to load config from env");
+    matches!(MessagingConfig::load(), Ok(MessagingConfig::Kafka { broker }) if broker == Ipv4Addr::new(127, 0, 0, 1));
 
-    assert_eq!(result.log_level, LogLevel::Debug);
+    clear_test_env_vars();
+
+    unsafe {
+        env::set_var("PULSAR_BROKER", "192.168.1.1");
+    }
+
+    matches!(MessagingConfig::load(), Ok(MessagingConfig::Pulsar { broker }) if broker == Ipv4Addr::new(192, 168, 1, 1));
+
+    clear_test_env_vars();
+
+    assert_eq!(MessagingConfig::load().unwrap(), MessagingConfig::Mock { broker: Ipv4Addr::new(1, 1, 1, 1) } );
+
 }

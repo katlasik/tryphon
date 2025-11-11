@@ -1,5 +1,33 @@
 use tryphon::{Config, ConfigFieldError, ConfigValueDecoder, env_vars};
 
+
+#[derive(Debug)]
+struct Point {
+    x: i32,
+    y: i32
+}
+
+impl ConfigValueDecoder for Point {
+    fn decode(raw: String) -> Result<Self, String> {
+        let parts = raw.split('/').collect::<Vec<_>>();
+        if parts.len() != 2 {
+            return Err(format!("Invalid format for Point: {}", raw));
+        }
+        let x = parts[0].trim().parse::<i32>().map_err(|e| e.to_string())?;
+        let y = parts[1].trim().parse::<i32>().map_err(|e| e.to_string())?;
+        Ok(Point { x, y })
+    }
+}
+
+#[derive(Config, Debug)]
+struct Rectangle {
+    #[env("TOP_LEFT")]
+    #[default(Point { x: 0, y: 0 })]
+    top_left: Point,
+    #[env("BOTTOM_RIGHT")]
+    bottom_right: Point,
+}
+
 #[derive(ConfigValueDecoder, Debug)]
 struct Flag(bool);
 
@@ -19,7 +47,7 @@ struct AppConfig {
     #[env("SYSTEM_PORT")] #[default(SystemPort(80))]
     port: SystemPort,
     #[env("SWITCH_STATE")] #[default(SwitchState::Off)]
-    switch: SwitchState
+    switch: SwitchState,
 }
 
 #[test]
@@ -62,4 +90,25 @@ fn test_derived_decoders_defaults() {
   assert!(!config.flag.0);
   assert_eq!(config.port.0, 80);
   assert_eq!(config.switch, SwitchState::Off);
+}
+
+#[test]
+#[env_vars(BOTTOM_RIGHT = "30/40")]
+fn test_custom_decoder() {
+  let config = Rectangle::load().expect("Failed to load config with custom decoders");
+
+  assert_eq!(config.top_left.x, 0);
+  assert_eq!(config.top_left.y, 0);
+  assert_eq!(config.bottom_right.x, 30);
+  assert_eq!(config.bottom_right.y, 40);
+}
+
+#[test]
+#[env_vars(BOTTOM_RIGHT = "30x40")]
+fn test_custom_decoder_fail() {
+  let error = Rectangle::load().expect_err("Should have failed to load config with bad values");
+
+  matches!(&error.field_errors[..], [ConfigFieldError::ParsingError { message, .. }] if message.contains("Invalid format for Point"));
+
+
 }

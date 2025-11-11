@@ -1,0 +1,7 @@
+error: You can only derive ConfigValueDecoder for newtype structs with a single field
+ --> tests/ui/fail/decoder_multi_field.rs:3:10
+  |
+3 | #[derive(ConfigValueDecoder)]
+  |          ^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the derive macro `ConfigValueDecoder` (in Nightly builds, run with -Z macro-backtrace for more info)

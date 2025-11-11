@@ -1,0 +1,9 @@
+error[E0277]: the trait bound `Option<NestedConfig>: Config` is not satisfied
+  --> tests/ui/fail/config_on_option.rs:12:13
+   |
+12 |     nested: Option<NestedConfig>,  // Invalid
+   |             ^^^^^^^^^^^^^^^^^^^^ the trait `Config` is not implemented for `Option<NestedConfig>`
+   |
+   = help: the following other types implement trait `Config`:
+             BadConfig
+             NestedConfig

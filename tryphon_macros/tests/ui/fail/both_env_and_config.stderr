@@ -1,0 +1,5 @@
+error: You can either mark field as nested config or provide env variables to read from, not both.
+ --> tests/ui/fail/both_env_and_config.rs:5:5
+  |
+5 |     #[env("DB_HOST")]
+  |     ^

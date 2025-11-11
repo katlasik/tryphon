@@ -1,0 +1,11 @@
+error: Environment variable can't be empty nor blank
+ --> tests/ui/fail/empty_env_name.rs:5:7
+  |
+5 |     #[env("")]
+  |       ^^^
+
+error: No env attribute found
+ --> tests/ui/fail/empty_env_name.rs:5:5
+  |
+5 |     #[env("")]
+  |     ^
