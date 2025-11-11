@@ -39,6 +39,16 @@ match AppConfig::load() {
     }
 }
 
+#[test]
+#[env_vars(API_KEY = "qwerty", DATABASE_URL = "http://localhost:5432")] //override env vars for test
+fn test() {
+  let config = AppConfig::load().expect("Failed to load test config");
+
+  assert_eq!(*config.api_key, "qwerty");
+  assert_eq!(config.database_url, "http://localhost:5432");
+  assert_eq!(config.port, 8080);
+}
+
 ```
 
 ## Documentation
