@@ -1,7 +1,0 @@
-error[E0277]: the trait bound `NotConfig: Config` is not satisfied
-  --> tests/ui/fail/config_non_config_type.rs:10:13
-   |
-10 |     nested: NotConfig,  // Doesn't implement Config
-   |             ^^^^^^^^^ the trait `Config` is not implemented for `NotConfig`
-   |
-   = help: the trait `Config` is implemented for `BadConfig`
