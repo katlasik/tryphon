@@ -98,10 +98,10 @@ fn find_default_attr(
                       }
                     });
                 }
-                Ok(Expr::Lit(ExprLit { lit, .. })) => {
+                Ok(expr) => {
                     default_value = Some(quote! {
                       {
-                        let tmp: #field_type = #lit;
+                        let tmp: #field_type = #expr;
                         tmp
                       }
                     });
@@ -379,8 +379,8 @@ pub fn derive_config(input: TokenStream) -> TokenStream {
 /// for enums, enabling them to be parsed from environment variable string values. It performs
 /// case-insensitive matching of the environment variable value against variant names.
 ///
-/// - Can only be used on **enums**
-/// - All variants must be **unit variants** (no fields)
+/// - Can only be used on **enums** or newtype **structs**
+/// - All variants of enum must be **unit variants** (no fields)
 /// - Matching is **case-insensitive** (variant names are converted to lowercase for comparison)
 #[proc_macro_derive(ConfigValueDecoder)]
 pub fn derive_config_value_decoder(input: TokenStream) -> TokenStream {
@@ -428,9 +428,47 @@ pub fn derive_config_value_decoder(input: TokenStream) -> TokenStream {
             }
             .into()
         }
+        Data::Struct(syn::DataStruct { fields, .. }) => {
+
+          let struct_name = ast.ident;
+
+          if fields.len() == 1 {
+
+            let underlying_field = fields.iter().next().unwrap();
+
+            let field_type = &underlying_field.ty;
+
+            let constructor = match &underlying_field.ident {
+              Some(field_name) => quote!{
+                 #struct_name{#field_name: decoded}
+              },
+              None => {
+                quote!{
+                 #struct_name(decoded)
+               }
+              }
+            };
+
+            quote! {
+              impl tryphon::ConfigValueDecoder for #struct_name {
+                fn decode(raw: String) -> Result<Self, String> {
+                  <#field_type as tryphon::ConfigValueDecoder>::decode(raw).map(|decoded| #constructor)
+                }
+              }
+            }.into()
+
+          } else {
+            Error::new(
+              Span::call_site(),
+              "You can only derive ConfigValueDecoder for newtype structs with a single field",
+            ).to_compile_error()
+              .into()
+          }
+
+        }
         _ => Error::new(
             Span::call_site(),
-            "You can only derive ConfigValueDecoder for enums without fields",
+            "You can only derive ConfigValueDecoder for enums without fields or newtype structs",
         )
         .to_compile_error()
         .into(),
@@ -449,7 +487,6 @@ pub fn env_vars(attr: TokenStream, item: TokenStream) -> TokenStream {
     let metas = parse_macro_input!(attr with Punctuated::<Meta, Token![,]>::parse_terminated);
     let input_fn = parse_macro_input!(item as ItemFn);
 
-    // Prepare setters that also remember previous values
     let mut setters = Vec::new();
 
     for meta in metas {
