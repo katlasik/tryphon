@@ -5,7 +5,7 @@
 //! ## Quick Start
 //!
 //! ```rust
-//! use tryphon::{Config, Secret};
+//! use tryphon::{Config, ErrorPrintMode, Secret};
 //!
 //! #[derive(Debug, Config)]
 //! struct AppConfig {
@@ -25,11 +25,10 @@
 //! match AppConfig::load() {
 //!     Ok(config) => {
 //!         println!("Server starting on port {}", config.port);
-//!         // api_key is masked in debug output
-//!         println!("Config: {:?}", config);
+//!         println!("Hash of API_KEY: {:?}", config.api_key.hashed());
 //!     }
 //!     Err(e) => {
-//!         eprintln!("Configuration error: {:#?}", e);
+//!         eprintln!("{}", e.pretty_print(ErrorPrintMode::Table));
 //!     }
 //! }
 //! ```
@@ -171,7 +170,7 @@
 //!
 //! ### Using the Derive Macro
 //!
-//! For simple enums, use the `#[derive(ConfigValueDecoder)]` macro:
+//! For simple enums with unit variants, use the `#[derive(ConfigValueDecoder)]` macro:
 //!
 //! ```rust
 //! use tryphon::{ConfigValueDecoder, Config};
@@ -188,6 +187,27 @@
 //! struct AppConfig {
 //!     #[env("LOG_LEVEL")]
 //!     log_level: LogLevel,
+//! }
+//! ```
+//!
+//! The derive macro also works for newtype structs (single-field structs):
+//!
+//! ```rust
+//! use tryphon::{ConfigValueDecoder, Config};
+//!
+//! #[derive(Debug, ConfigValueDecoder)]
+//! struct Port(u16);
+//!
+//! #[derive(Debug, ConfigValueDecoder)]
+//! struct ApiKey(String);
+//!
+//! #[derive(Config)]
+//! struct AppConfig {
+//!     #[env("PORT")]
+//!     port: Port,
+//!
+//!     #[env("API_KEY")]
+//!     api_key: ApiKey,
 //! }
 //! ```
 //!
