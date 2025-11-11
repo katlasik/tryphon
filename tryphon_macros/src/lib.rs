@@ -429,42 +429,38 @@ pub fn derive_config_value_decoder(input: TokenStream) -> TokenStream {
             .into()
         }
         Data::Struct(syn::DataStruct { fields, .. }) => {
+            let struct_name = ast.ident;
 
-          let struct_name = ast.ident;
+            if fields.len() == 1 {
+                let underlying_field = fields.iter().next().unwrap();
 
-          if fields.len() == 1 {
+                let field_type = &underlying_field.ty;
 
-            let underlying_field = fields.iter().next().unwrap();
+                let constructor = match &underlying_field.ident {
+                    Some(field_name) => quote! {
+                       #struct_name{#field_name: decoded}
+                    },
+                    None => {
+                        quote! {
+                          #struct_name(decoded)
+                        }
+                    }
+                };
 
-            let field_type = &underlying_field.ty;
-
-            let constructor = match &underlying_field.ident {
-              Some(field_name) => quote!{
-                 #struct_name{#field_name: decoded}
-              },
-              None => {
-                quote!{
-                 #struct_name(decoded)
-               }
-              }
-            };
-
-            quote! {
+                quote! {
               impl tryphon::ConfigValueDecoder for #struct_name {
                 fn decode(raw: String) -> Result<Self, String> {
                   <#field_type as tryphon::ConfigValueDecoder>::decode(raw).map(|decoded| #constructor)
                 }
               }
             }.into()
-
-          } else {
-            Error::new(
+            } else {
+                Error::new(
               Span::call_site(),
               "You can only derive ConfigValueDecoder for newtype structs with a single field",
             ).to_compile_error()
               .into()
-          }
-
+            }
         }
         _ => Error::new(
             Span::call_site(),

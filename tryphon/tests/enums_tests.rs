@@ -3,22 +3,23 @@ mod common;
 use common::TEST_MUTEX;
 use std::env;
 use std::net::Ipv4Addr;
-use tryphon::{Config};
+use tryphon::Config;
 
 #[derive(Debug, PartialEq, Config)]
 enum MessagingConfig {
     Kafka {
-      #[env("KAFKA_BROKER")]
-      broker: Ipv4Addr,
+        #[env("KAFKA_BROKER")]
+        broker: Ipv4Addr,
     },
     Pulsar {
-      #[env("PULSAR_BROKER")]
-      broker: Ipv4Addr
+        #[env("PULSAR_BROKER")]
+        broker: Ipv4Addr,
     },
     Mock {
-      #[env("MOCK_BROKER")] #[default(Ipv4Addr::new(1, 1, 1, 1))]
-      broker: Ipv4Addr
-    }
+        #[env("MOCK_BROKER")]
+        #[default(Ipv4Addr::new(1, 1, 1, 1))]
+        broker: Ipv4Addr,
+    },
 }
 
 fn clear_test_env_vars() {
@@ -49,6 +50,10 @@ fn test_enum() {
 
     clear_test_env_vars();
 
-    assert_eq!(MessagingConfig::load().unwrap(), MessagingConfig::Mock { broker: Ipv4Addr::new(1, 1, 1, 1) } );
-
+    assert_eq!(
+        MessagingConfig::load().unwrap(),
+        MessagingConfig::Mock {
+            broker: Ipv4Addr::new(1, 1, 1, 1)
+        }
+    );
 }

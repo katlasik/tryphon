@@ -1,10 +1,9 @@
 use tryphon::{Config, ConfigFieldError, ConfigValueDecoder, env_vars};
 
-
 #[derive(Debug)]
 struct Point {
     x: i32,
-    y: i32
+    y: i32,
 }
 
 impl ConfigValueDecoder for Point {
@@ -42,11 +41,14 @@ enum SwitchState {
 
 #[derive(Debug, Config)]
 struct AppConfig {
-    #[env("FLAG")] #[default(Flag(false))]
+    #[env("FLAG")]
+    #[default(Flag(false))]
     flag: Flag,
-    #[env("SYSTEM_PORT")] #[default(SystemPort(80))]
+    #[env("SYSTEM_PORT")]
+    #[default(SystemPort(80))]
     port: SystemPort,
-    #[env("SWITCH_STATE")] #[default(SwitchState::Off)]
+    #[env("SWITCH_STATE")]
+    #[default(SwitchState::Off)]
     switch: SwitchState,
 }
 
@@ -85,30 +87,28 @@ fn test_derived_decoders_failure() {
 
 #[test]
 fn test_derived_decoders_defaults() {
-  let config = AppConfig::load().expect("Failed to load config with custom decoders");
+    let config = AppConfig::load().expect("Failed to load config with custom decoders");
 
-  assert!(!config.flag.0);
-  assert_eq!(config.port.0, 80);
-  assert_eq!(config.switch, SwitchState::Off);
+    assert!(!config.flag.0);
+    assert_eq!(config.port.0, 80);
+    assert_eq!(config.switch, SwitchState::Off);
 }
 
 #[test]
 #[env_vars(BOTTOM_RIGHT = "30/40")]
 fn test_custom_decoder() {
-  let config = Rectangle::load().expect("Failed to load config with custom decoders");
+    let config = Rectangle::load().expect("Failed to load config with custom decoders");
 
-  assert_eq!(config.top_left.x, 0);
-  assert_eq!(config.top_left.y, 0);
-  assert_eq!(config.bottom_right.x, 30);
-  assert_eq!(config.bottom_right.y, 40);
+    assert_eq!(config.top_left.x, 0);
+    assert_eq!(config.top_left.y, 0);
+    assert_eq!(config.bottom_right.x, 30);
+    assert_eq!(config.bottom_right.y, 40);
 }
 
 #[test]
 #[env_vars(BOTTOM_RIGHT = "30x40")]
 fn test_custom_decoder_fail() {
-  let error = Rectangle::load().expect_err("Should have failed to load config with bad values");
+    let error = Rectangle::load().expect_err("Should have failed to load config with bad values");
 
-  matches!(&error.field_errors[..], [ConfigFieldError::ParsingError { message, .. }] if message.contains("Invalid format for Point"));
-
-
+    matches!(&error.field_errors[..], [ConfigFieldError::ParsingError { message, .. }] if message.contains("Invalid format for Point"));
 }
