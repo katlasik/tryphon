@@ -9,7 +9,7 @@ A type-safe Rust library for loading configuration from environment variables us
 
 ```toml
 [dependencies]
-tryphon = "0.1.0"
+tryphon = "0.2.0"
 ```
 
 ## Quick Example

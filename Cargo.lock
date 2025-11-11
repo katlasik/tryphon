@@ -267,7 +267,7 @@ dependencies = [
 
 [[package]]
 name = "tryphon"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "rand",
  "tryphon_macros",
@@ -275,14 +275,14 @@ dependencies = [
 
 [[package]]
 name = "tryphon_examples"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "tryphon",
 ]
 
 [[package]]
 name = "tryphon_macros"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "proc-macro2",
  "quote",
